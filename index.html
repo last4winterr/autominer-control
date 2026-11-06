@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1420">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AutoMiner">
+<title>AutoMiner Control</title>
+<style>
+  :root {
+    --bg: #0e1420; --panel: #161e2e; --panel2: #1c263a; --line: #2a3650;
+    --text: #e6ecf5; --muted: #8f9bb3; --accent: #e0463a; --accent2: #ff6a5c;
+    --ok: #3ccf7a; --warn: #f2b33d; --bad: #e0463a; --info: #5aa9ff;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto;
+          padding: calc(16px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right))
+                   calc(70px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left)); }
+  header { display: flex; align-items: center; gap: 6px 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  header .sub { flex-basis: 100%; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  header h1 { font-size: 20px; margin: 0; letter-spacing: .3px; }
+  header h1 span { color: var(--accent2); }
+  header .sp { flex: 1; }
+  .muted { color: var(--muted); }
+  .small-text { font-size: 12px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; margin-bottom: 10px; }
+  .panel h2 { font-size: 16px; margin: 0; }
+  .phead { display: flex; gap: 8px 10px; align-items: center; flex-wrap: wrap; }
+  .stats { display: flex; flex-wrap: wrap; gap: 4px 16px; background: var(--panel); border: 1px solid var(--line);
+           border-radius: var(--radius); padding: 8px 12px; margin-bottom: 10px; font-size: 13px; color: var(--muted); }
+  .stats b { color: var(--text); font-size: 15px; font-variant-numeric: tabular-nums; margin-right: 3px; }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  input, select, textarea { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line);
+                  border-radius: 8px; padding: 9px 10px; font: inherit; font-size: 16px; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--info); outline-offset: -1px; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px;
+           padding: 8px 12px; font: inherit; cursor: pointer; white-space: nowrap; min-height: 36px; }
+  button:hover { border-color: var(--muted); }
+  button:disabled { opacity: .5; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.primary:hover { background: var(--accent2); }
+  button.small { padding: 5px 10px; font-size: 13px; min-height: 32px; }
+  button.xs { padding: 3px 9px; font-size: 12px; min-height: 28px; border-radius: 7px; }
+  button.danger { color: var(--accent2); }
+  button.good { color: var(--ok); }
+  button.dim { opacity: .55; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  .row > div { flex: 1; min-width: 120px; }
+  .btns { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+  .btns .lbl { color: var(--muted); font-size: 12px; margin-right: 2px; }
+  .newkey { margin-top: 12px; padding: 12px; border: 1px dashed var(--ok); border-radius: 8px; display: none; }
+  .newkey code { font-size: 18px; color: var(--ok); word-break: break-all; }
+  .keys { display: grid; gap: 10px; margin-top: 10px; }
+  .key { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; }
+  .key.off { border-style: dashed; }
+  .key.off .khead code { opacity: .7; }
+  .khead { display: flex; gap: 6px 10px; align-items: center; flex-wrap: wrap; }
+  .khead code { font-size: 15px; font-weight: 600; letter-spacing: .5px; word-break: break-all; }
+  .badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; letter-spacing: .4px; }
+  .b-ok { background: rgba(60,207,122,.15); color: var(--ok); }
+  .b-exp { background: rgba(242,179,61,.15); color: var(--warn); }
+  .b-off { background: rgba(224,70,58,.15); color: var(--accent2); }
+  .b-info { background: rgba(90,169,255,.15); color: var(--info); }
+  .left { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .note { color: var(--muted); }
+  .section { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+  .players { display: grid; gap: 4px; }
+  .pl { display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap; background: var(--bg); border: 1px solid var(--line);
+        border-radius: 8px; padding: 4px 6px 4px 9px; min-height: 38px; }
+  .pl .who { display: flex; align-items: baseline; gap: 2px 7px; flex-wrap: wrap; flex: 1 1 130px; min-width: 0; }
+  .pl .name { font-weight: 700; overflow-wrap: break-word; min-width: 0; }
+  .pl .st { font-size: 12px; color: var(--muted); }
+  .pl .st.on { color: var(--ok); }
+  .pl .acts { display: flex; gap: 5px; flex-wrap: wrap; margin-left: auto; }
+  .pl.away .name { opacity: .7; }
+  .pl.kicked { border-style: dashed; }
+  .chead { display: flex; gap: 4px 10px; align-items: baseline; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .note1 { font-size: 12px; color: var(--muted); margin: 3px 0 6px; }
+  button.more { background: none; border: 0; color: var(--info); padding: 2px 0; min-height: 0; font-size: 12px; justify-self: start; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #4a5570; flex: none; }
+  .dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .dot.mid { background: var(--warn); box-shadow: 0 0 6px var(--warn); }
+  .dot.bad { background: var(--accent); }
+  .err { color: var(--accent2); margin-top: 8px; min-height: 1em; }
+  .center { max-width: 440px; margin: 6vh auto 0; }
+  .center h2 { margin: 0 0 4px; }
+  .center .field { margin-top: 12px; }
+  .hide { display: none !important; }
+  .toolbar { display: flex; gap: 8px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
+  .toolbar input { flex: 1; min-width: 160px; }
+  .toolbar select { width: auto; }
+  .empty { text-align: center; padding: 24px; color: var(--muted); }
+  .ctl { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 8px 0; }
+  .ctl select, .ctl input { padding: 6px 8px; }
+  .ctl select { width: auto; max-width: 100%; }
+  .ctl input { flex: 1; min-width: 160px; width: auto; }
+  .alts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .alt { background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; }
+  .alt.stale { opacity: .55; }
+  .alt .top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .alt .nm { font-weight: 700; }
+  .meta { color: var(--muted); font-size: 12px; margin: 4px 0 6px; display: flex; gap: 4px 12px; flex-wrap: wrap; }
+  .meta .warn { color: var(--warn); font-weight: 600; }
+  .meta .bad { color: var(--accent2); font-weight: 600; }
+  .alt .acts { display: flex; gap: 5px; flex-wrap: wrap; }
+  .bans { display: grid; gap: 6px; margin-top: 10px; }
+  .ban { display: flex; gap: 6px 10px; align-items: center; flex-wrap: wrap; background: var(--bg); border: 1px solid var(--line);
+         border-radius: 9px; padding: 8px 10px; }
+  .ban .name { font-weight: 700; }
+  .ban .sp { flex: 1; }
+  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--panel2);
+           border: 1px solid var(--ok); color: var(--text); padding: 10px 16px; border-radius: 9px; z-index: 30; max-width: 92vw; }
+  .toast.err { border-color: var(--accent); }
+  .cmdrow { display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+  details summary { cursor: pointer; color: var(--muted); margin-top: 8px; }
+  details.panel > summary { list-style: none; display: flex; align-items: center; gap: 8px; color: var(--text); margin: 0; }
+  details.panel > summary::-webkit-details-marker { display: none; }
+  details.panel > summary::before { content: '\25B8'; color: var(--muted); font-size: 12px; width: 10px; }
+  details.panel[open] > summary::before { content: '\25BE'; }
+  details.panel > summary h2 { font-size: 15px; }
+  details.panel:not([open]) { padding-top: 10px; padding-bottom: 10px; }
+  .banner { background: rgba(242,179,61,.12); border: 1px solid var(--warn); color: var(--text); border-radius: 9px;
+            padding: 8px 12px; margin-bottom: 12px; font-size: 13px; }
+  .banner.bad { background: rgba(224,70,58,.12); border-color: var(--accent); }
+  /* dialogs */
+  .dlg-back { position: fixed; inset: 0; background: rgba(5,8,14,.72); z-index: 40; display: flex; align-items: center;
+              justify-content: center; padding: 16px; }
+  .dlg { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; width: 100%; max-width: 420px;
+         padding: 16px; max-height: 90vh; overflow: auto; }
+  .dlg h3 { margin: 0 0 6px; font-size: 17px; }
+  .dlg .txt { color: var(--muted); white-space: pre-wrap; }
+  .dlg .field { margin-top: 12px; }
+  .dlg .dbtns { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; justify-content: flex-end; }
+  .dlg .dbtns button { flex: 1; min-width: 110px; }
+  label.check { display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  label.check input { width: auto; margin: 0; }
+  .login-links { display: flex; justify-content: center; margin-top: 10px; }
+  .center details summary { margin-top: 14px; font-size: 12px; }
+  .logins { display: grid; gap: 6px; margin-top: 8px; }
+  .lrow { display: flex; gap: 6px 10px; align-items: center; flex-wrap: wrap; background: var(--bg); border: 1px solid var(--line);
+          border-radius: 9px; padding: 8px 10px; }
+  .lrow .name { font-weight: 700; overflow-wrap: anywhere; }
+  .lrow .sp { flex: 1; }
+  .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  .seg button.on { border-color: var(--info); color: var(--info); }
+  @media (max-width: 560px) {
+    header h1 { font-size: 18px; }
+    .alts { grid-template-columns: 1fr; }
+    .hide-phone { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== web version: sign in with email + password ===== -->
+  <section id="login" class="center panel hide">
+    <h2>AutoMiner <span style="color:var(--accent2)">Control</span></h2>
+    <div id="signinBox">
+      <div class="muted">Sign in to control your AutoMiner keys.</div>
+      <div class="field"><label for="liEmail">Email</label><input id="liEmail" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+      <div class="field"><label for="liPw">Password</label><input id="liPw" type="password" autocomplete="current-password"></div>
+      <label class="check"><input id="liKeep" type="checkbox" checked> Keep me signed in on this device</label>
+      <div class="row" style="margin-top:14px"><div><button class="primary" id="loginBtn" style="width:100%">Sign in</button></div></div>
+      <div class="err" id="loginErr"></div>
+      <div class="login-links"><button class="more" id="toSetup">First time here, or forgot your password?</button></div>
+    </div>
+    <div id="setupBox" class="hide">
+      <div class="muted">Make your login, or give it a new password. Your panel password proves it is you.</div>
+      <div class="field"><label for="suEmail">Email</label><input id="suEmail" type="email" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+      <div class="field"><label for="suPw">New password (at least 8 characters)</label><input id="suPw" type="password" autocomplete="new-password"></div>
+      <div class="field"><label for="suPw2">Repeat the new password</label><input id="suPw2" type="password" autocomplete="new-password"></div>
+      <div class="field"><label for="suPanel">Panel password</label><input id="suPanel" type="password" autocomplete="off"></div>
+      <div class="muted small-text" style="margin-top:6px">The admin password of the panel. Forgot it? Set a new one with the Password button in the claude.ai version of the panel.</div>
+      <div class="row" style="margin-top:14px"><div><button class="primary" id="setupBtn" style="width:100%">Save and sign in</button></div></div>
+      <div class="err" id="setupErr"></div>
+      <div class="login-links"><button class="more" id="toSignin">Back to sign in</button></div>
+    </div>
+    <details>
+      <summary>Server</summary>
+      <div class="field"><label for="cfgUrl">Supabase Project URL</label><input id="cfgUrl" placeholder="https://xxxx.supabase.co" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label for="cfgKey">Publishable key</label><input id="cfgKey" autocomplete="off" spellcheck="false"></div>
+    </details>
+  </section>
+
+  <!-- ===== claude.ai version: connecting through the Supabase connector ===== -->
+  <section id="connect" class="center panel hide">
+    <h2>AutoMiner <span style="color:var(--accent2)">Control</span></h2>
+    <div class="muted" id="connectText">Connecting to your Supabase through your connector...</div>
+    <div class="row" style="margin-top:14px"><div><button class="primary hide" id="connectBtn" style="width:100%">Try again</button></div></div>
+    <div class="err" id="connectErr"></div>
+  </section>
+
+  <!-- ===== main ===== -->
+  <section id="main" class="hide">
+    <header>
+      <h1>AutoMiner <span>Control</span></h1>
+      <div class="sp"></div>
+      <button class="xs" id="refreshBtn">Refresh</button>
+      <button class="xs" id="pwBtn">Password</button>
+      <button class="xs" id="logoutBtn">Sign out</button>
+      <div class="sub"><span class="badge b-info" id="modeBadge"></span><span class="muted small-text" id="lastUpdate"></span></div>
+    </header>
+    <div class="banner hide" id="banner"></div>
+
+    <div class="stats">
+      <span><b id="sOnline">0</b>online</span>
+      <span><b id="sPlayers">0</b>characters</span>
+      <span><b id="sActive">0</b>keys active</span>
+      <span><b id="sBanned">0</b>kicked / blacklisted</span>
+    </div>
+
+    <!-- live miners that take phone orders -->
+    <div class="panel" id="live">
+      <div class="phead"><h2>Live miners</h2><span class="muted small-text" id="liveInfo"></span></div>
+      <div class="muted small-text" id="liveNone" style="margin-top:4px">None yet. Miners with the newer AutoMiner show up here.</div>
+      <div id="liveCtl" class="hide">
+      <div class="muted small-text" style="margin-top:4px">Orders reach miners with the newer AutoMiner (they report every 30 s).</div>
+      <div class="ctl">
+        <select id="tgt"><option value="all">All miners</option><option value="owner">My miners</option></select>
+        <button class="small" data-act="reset">Reset</button>
+        <button class="small" data-act="chan1">Channel 1</button>
+        <button class="small" data-act="stop">Stop</button>
+        <button class="small" data-act="start">Start</button>
+        <button class="small" data-act="restart">Restart</button>
+      </div>
+      <div class="ctl">
+        <select id="mvSel"></select>
+        <button class="small" data-act="move">Teleport</button>
+      </div>
+      <div class="ctl">
+        <input id="msgTxt" maxlength="200" placeholder="Message to show in their game chat">
+        <button class="small" data-act="msg">Send message</button>
+      </div>
+      <div class="err" id="liveErr"></div>
+      <div class="alts" id="alts"></div>
+      <details><summary>Recent orders</summary><div id="cmds"></div></details>
+      </div>
+    </div>
+
+    <!-- blacklist -->
+    <details class="panel" id="banPanel">
+      <summary><h2>Blacklist</h2><span class="muted small-text" id="banCount"></span></summary>
+      <div class="muted small-text" style="margin-top:6px">No key works for these characters.</div>
+      <div class="row" style="margin-top:8px">
+        <div><label>Character name</label><input id="banName" autocomplete="off" autocapitalize="off" placeholder="e.g. herloks"></div>
+        <div style="flex:0"><button class="danger" id="banBtn">Blacklist</button></div>
+      </div>
+      <div class="err" id="banErr"></div>
+      <div class="bans" id="bans"></div>
+    </details>
+
+    <!-- new key -->
+    <details class="panel" id="newPanel">
+      <summary><h2>Create a new key</h2></summary>
+      <div class="row" style="margin-top:10px">
+        <div><label>Who is it for (note)</label><input id="nNote" placeholder="e.g. Dima"></div>
+        <div style="max-width:120px"><label>Days</label><input id="nDays" type="number" inputmode="decimal" min="0.01" step="any" value="7"></div>
+        <div style="max-width:140px"><label>Max characters</label><input id="nMax" type="number" inputmode="numeric" min="1" value="1"></div>
+        <div style="flex:0"><button class="primary" id="createBtn">Create key</button></div>
+      </div>
+      <div class="newkey" id="newKeyBox">
+        New key: <code id="newKey"></code> <button class="small" id="copyNew">Copy</button>
+        <div class="muted" style="margin-top:4px">Send it to your friend. They type in game chat: <b>!key <span id="newKey2"></span></b></div>
+      </div>
+      <div class="err" id="mainErr"></div>
+    </details>
+
+    <div class="toolbar" id="keysBar">
+      <input id="search" placeholder="Search key, note or character..." autocapitalize="off">
+      <select id="filter">
+        <option value="all">All keys</option>
+        <option value="active">Active</option>
+        <option value="online">Someone online</option>
+        <option value="expired">Expired</option>
+        <option value="off">Turned off</option>
+      </select>
+    </div>
+    <div class="keys" id="keys"></div>
+
+    <!-- email + password logins of the web version -->
+    <details class="panel" id="loginsPanel" style="margin-top:14px">
+      <summary><h2>Web logins</h2><span class="muted small-text" id="loginsCount"></span></summary>
+      <div class="muted small-text" style="margin-top:6px">Emails that can sign in to this panel on the web. Remove one to lock it out at once.</div>
+      <div class="logins" id="logins"></div>
+      <div class="err" id="loginsErr"></div>
+    </details>
+  </section>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const ONLINE_MS = 7 * 60 * 1000;      // the miner checks its key every 5 min
+  const ORDERS_MS = 15 * 60 * 1000;     // a miner that reported in the last 15 min gets phone orders
+  const OLD_MS = 24 * 3600 * 1000;      // characters not seen for a day are folded away
+  const openOld = new Set();            // keys whose folded characters are shown
+  const MINE_LIST = ['Jungle Mines', 'Underwater Cave Mines', 'Snowfield Mines'];
+  const SHORT_MINE = { 'jungle mines': 'Jungle', 'underwater cave mines': 'Underwater', 'snowfield mines': 'Snowfield' };
+  const PROJECT_REF = 'ociwhswjojagwjrnunlv';
+  const CONNECTOR = 'Supabase';
+  const SQL_TOOL = 'execute_sql';
+  const DEFAULT_URL = 'https://' + PROJECT_REF + '.supabase.co';
+  const DEFAULT_KEYS = ['sb_publishable_sGT_mDEl_bwNmCVed-noeg_gJqnpbOi', 'sb_publishable_xrI-_vBQAzNiDJg95r7kDA_9Gkh0u6H'];
+  // inside claude.ai the page cannot reach Supabase itself: it goes through the viewer's Supabase connector instead
+  // (decided at the start, see the bottom of this script)
+  let IN_CLAUDE = false;
+
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    sget(k) { try { return sessionStorage.getItem(k) || ''; } catch (e) { return ''; } },
+    sset(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} },
+    sdel(k) { try { sessionStorage.removeItem(k); } catch (e) {} },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+  };
+  let cfg = { url: store.get('am_url') || DEFAULT_URL, key: store.get('am_key') || DEFAULT_KEYS[0] };
+  let data = { keys: [] }, alts = [], cmds = [], bans = [], clockSkew = 0, loggedIn = false;
+  store.sdel('am_pw');   // the old web version kept the panel password here
+  const now = () => Date.now() + clockSkew;
+
+  // ================================================================ talking to Supabase
+  const NOT_OWNER = 'Supabase did not let the connector act as the project owner - it is probably connected read-only. ' +
+                    'Reconnect the Supabase connector with write access.';
+  function nice(e) {
+    if (IN_CLAUDE && ['wrong_password', 'locked', 'no_password_set'].includes(e)) return NOT_OWNER;
+    return ({ wrong_password: 'Wrong password.',
+              locked: 'Too many wrong passwords - locked for 10 minutes.',
+              no_password_set: 'No admin password yet.' })[e] || e;
+  }
+  function checkAnswer(body) {
+    let code = null;
+    if (typeof body === 'string' && body.startsWith('error:')) code = body.slice(6);
+    else if (body && typeof body === 'object' && body.error) code = body.error;
+    if (code === null) return body;
+    if (!IN_CLAUDE && AUTH.rt && code === 'wrong_password') { const er = new Error(NOT_LINKED); er.notLinked = true; throw er; }
+    throw new Error(nice(code));
+  }
+  const base = () => cfg.url.replace(/\/+$/, '');
+
+  // ---- web version: sign in with email + password (Supabase Auth). The refresh token stays on this device only.
+  const NOT_LINKED = 'This login does not control the panel. Tap "First time here, or forgot your password?" and save it once with your panel password.';
+  const AUTH = { at: '', rt: '', exp: 0, email: '' };
+  function loadAuth() { AUTH.rt = store.get('am_rt') || store.sget('am_rt'); AUTH.email = store.get('am_email'); }
+  function saveAuth() {
+    if (store.get('am_keep') === '0') { store.sset('am_rt', AUTH.rt); store.del('am_rt'); }
+    else { store.set('am_rt', AUTH.rt); store.sdel('am_rt'); }
+  }
+  function clearAuth() { AUTH.at = ''; AUTH.rt = ''; AUTH.exp = 0; store.del('am_rt'); store.sdel('am_rt'); }
+  function authText(j, status) {
+    const code = String(j.error_code || j.code || j.error || ''), m = String(j.msg || j.message || j.error_description || '');
+    if (code === 'invalid_credentials' || /invalid login credentials/i.test(m)) return 'Wrong email or password.';
+    if (code === 'email_not_confirmed') return 'This email is not confirmed yet.';
+    if (status === 429 || /rate limit/i.test(code + ' ' + m)) return 'Too many tries - wait a few minutes and try again.';
+    if (code === 'same_password') return 'That is already your password.';
+    if (code === 'weak_password') return 'That password is too weak' + (m ? ': ' + m : '.');
+    if (code === 'reauthentication_needed') return 'Use "First time here, or forgot your password?" on the sign-in screen to change it.';
+    if (/refresh_token|session_not_found|session_expired|bad_jwt/.test(code)) return 'You were signed out - sign in again.';
+    return m || ('Sign-in problem (' + status + ').');
+  }
+  async function gotrue(path, body, method, token) {
+    const headers = { 'Content-Type': 'application/json', apikey: cfg.key };
+    if (token) headers.Authorization = 'Bearer ' + token;
+    let res;
+    try { res = await fetch(base() + '/auth/v1/' + path, { method: method || 'POST', headers, body: body ? JSON.stringify(body) : undefined }); }
+    catch (e) { throw new Error('Could not reach the server - check your internet.'); }
+    const txt = await res.text();
+    let j = {}; try { j = txt ? JSON.parse(txt) : {}; } catch (e) {}
+    if (!res.ok) { const er = new Error(authText(j || {}, res.status)); er.status = res.status; er.authFail = true; throw er; }
+    return j || {};
+  }
+  function takeSession(j) {
+    if (!j.access_token || !j.refresh_token) throw new Error('The server did not sign you in - try again.');
+    AUTH.at = j.access_token; AUTH.rt = j.refresh_token;
+    AUTH.exp = Date.now() + (Number(j.expires_in) > 0 ? Number(j.expires_in) : 3600) * 1000;
+    if (j.user && j.user.email) { AUTH.email = j.user.email; store.set('am_email', j.user.email); }
+    saveAuth();
+  }
+  let authRefreshing = null;
+  function refreshSession() {   // one at a time: a refresh token works only once
+    if (!AUTH.rt) { const er = new Error('You were signed out - sign in again.'); er.signedOut = true; return Promise.reject(er); }
+    if (!authRefreshing) {
+      authRefreshing = gotrue('token?grant_type=refresh_token', { refresh_token: AUTH.rt })
+        .then(takeSession)
+        .catch(e => {
+          if (e.status >= 400 && e.status < 500 && e.status !== 429) { clearAuth(); const er = new Error('You were signed out - sign in again.'); er.signedOut = true; throw er; }
+          throw e;
+        })
+        .finally(() => { authRefreshing = null; });
+    }
+    return authRefreshing;
+  }
+  async function accessToken() {
+    if (!AUTH.at || Date.now() > AUTH.exp - 60000) await refreshSession();
+    return AUTH.at;
+  }
+  async function signIn(email, password) {
+    takeSession(await gotrue('token?grant_type=password', { email, password }));
+  }
+  async function signOut() {
+    const at = AUTH.at;
+    clearAuth();
+    if (at) { try { await gotrue('logout?scope=local', null, 'POST', at); } catch (e) { /* signed out here anyway */ } }
+  }
+  const SETUP_TEXT = {
+    wrong_password: 'Wrong panel password.',
+    locked: 'Too many wrong panel passwords - locked for 10 minutes.',
+    no_password_set: 'The panel has no panel password yet - set one with the Password button in the claude.ai version of the panel.',
+    bad_email: 'Type a valid email address.',
+    bad_password: 'The new password must be 8 to 72 characters.',
+    bad_request: 'Something went wrong - reload the page and try again.',
+    server_not_ready: 'The login setup on the server is not ready yet.',
+    server: 'The server had a problem - try again in a minute.',
+  };
+  async function setupLogin(email, password, panelPw) {   // the am-web-login edge function checks the panel password, then makes the login
+    let res;
+    try {
+      res = await fetch(base() + '/functions/v1/am-web-login', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: cfg.key },
+                                                                 body: JSON.stringify({ email, password, panel_pw: panelPw }) });
+    } catch (e) { throw new Error('Could not reach the server - check your internet.'); }
+    if (res.status === 404) throw new Error('The login setup is not installed on the server yet.');
+    const txt = await res.text();
+    let j = {}; try { j = JSON.parse(txt) || {}; } catch (e) {}
+    if (res.ok && j.ok) return j;
+    if (j.error === 'auth') throw new Error('The login could not be saved: ' + (j.detail || 'unknown problem'));
+    throw new Error(SETUP_TEXT[j.error] || ('The server answered ' + res.status + (j.error ? ' (' + j.error + ')' : '') + '.'));
+  }
+
+  // ---- web version: the REST API with the publishable key (+ the signed-in login)
+  async function rpcWeb(fn, args, retried) {
+    const url = base() + '/rest/v1/rpc/' + fn;
+    const headers = { 'Content-Type': 'application/json', apikey: cfg.key };
+    if (AUTH.rt) headers.Authorization = 'Bearer ' + await accessToken();
+    else if (cfg.key.startsWith('eyJ')) headers.Authorization = 'Bearer ' + cfg.key;
+    let res;
+    try {
+      res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(args || {}) });
+    } catch (e) { throw new Error('Could not reach Supabase - check your internet.'); }
+    const txt = await res.text();
+    let body; try { body = JSON.parse(txt); } catch (e) { body = txt; }
+    if (!res.ok) {
+      const m = (body && (body.message || body.hint)) || txt;
+      if (res.status === 404) { const er = new Error('Function not found: ' + fn + ' - the server is not updated yet. (' + m + ')'); er.missing = true; throw er; }
+      if (res.status === 401 && AUTH.rt) {
+        if (!retried) { AUTH.at = ''; return rpcWeb(fn, args, true); }   // the sign-in ran out: get a fresh one, once
+        clearAuth();
+        const er = new Error('You were signed out - sign in again.'); er.signedOut = true; throw er;
+      }
+      if (res.status === 401) {
+        const alt = DEFAULT_KEYS.find(k => k !== cfg.key);
+        if (!retried && alt && DEFAULT_KEYS.includes(cfg.key)) {   // try the other key once
+          cfg.key = alt; store.set('am_key', alt); $('cfgKey').value = alt;
+          return rpcWeb(fn, args, true);
+        }
+        throw new Error('Supabase refused the key - check the publishable key.');
+      }
+      throw new Error(m);
+    }
+    return body;
+  }
+
+  // ---- claude.ai version: SQL through the Supabase connector (execute_sql)
+  let mcpNs, mcpInput = { project: 'project_id', query: 'query' };
+  async function getMcp() {
+    if (mcpNs === undefined) { try { mcpNs = await window.claude.use('mcp'); } catch (e) { mcpNs = null; } }
+    return mcpNs;
+  }
+  function lit(v) {
+    if (v === null || v === undefined) return 'null';
+    if (typeof v === 'boolean') return v ? 'true' : 'false';
+    if (typeof v === 'number') { if (!isFinite(v)) throw new Error('bad number'); return String(v); }
+    return "'" + String(v).replace(/\u0000/g, '').replace(/'/g, "''") + "'";
+  }
+  function sqlCall(fn, args) {
+    if (!/^am_[a-z0-9_]+$/.test(fn)) throw new Error('bad function name');
+    const parts = Object.keys(args || {}).map(k => {
+      if (!/^[a-z_]+$/.test(k)) throw new Error('bad argument name');
+      return k + ' => ' + lit(args[k]);
+    });
+    return 'public.' + fn + '(' + parts.join(', ') + ')';
+  }
+  const CONNECTOR_FIX = {
+    server_not_connected: 'Add the Supabase connector: claude.ai Settings - Connectors - Supabase - Connect. Then tap Try again.',
+    needs_reauth: 'Reconnect Supabase: claude.ai Settings - Connectors. Then tap Try again.',
+    selection_required: 'You have more than one Supabase connector - choose one when claude.ai asks, then tap Try again.',
+    approval_required: 'This page needs your OK to use Supabase. Tap Try again and allow it.',
+    consent_required: 'This page needs your OK to use Supabase. Tap Try again and allow it.',
+    not_in_manifest: 'Supabase is switched off for this page. Switch it on for this page in claude.ai, then tap Try again.',
+    blocked_by_policy: 'Your claude.ai organization blocks this Supabase tool.',
+    not_granted: 'Open this page in claude.ai or the Claude app to use it.',
+    capability_disabled: 'This view cannot use connectors - open the page in claude.ai or the Claude app.',
+    capability_removed: 'This view cannot use connectors - open the page in claude.ai or the Claude app.',
+    server_not_found: 'The Supabase connector is gone - add it again in claude.ai Settings - Connectors.',
+    server_unavailable: 'Supabase is not answering right now - try again in a moment.',
+    upstream_error: 'The connector did not answer - try again in a moment.',
+    user_changed: 'You signed in as someone else - reload the page.',
+  };
+  function connectorError(e) {
+    const code = (e && e.code) || '';
+    let msg = CONNECTOR_FIX[code];
+    if (code === 'tool_error') {
+      const m = String((e && e.message) || '');
+      msg = 'Supabase answered with an error: ' + m.slice(0, 300) +
+            (/read.?only|permission denied/i.test(m) ? '\n' + NOT_OWNER : '');
+    }
+    const er = new Error(msg || ((e && e.message) || 'Problem with the Supabase connector.'));
+    er.code = code || 'unknown';
+    er.authz = ['server_not_connected', 'needs_reauth', 'selection_required', 'approval_required', 'consent_required',
+                'not_in_manifest', 'blocked_by_policy', 'not_granted', 'capability_disabled', 'capability_removed',
+                'server_not_found', 'user_changed'].includes(code);
+    return er;
+  }
+  function textOf(x, depth) {   // every piece of text inside an answer, whatever shape it came in
+    if (x == null || depth > 5) return '';
+    if (typeof x === 'string') return x;
+    if (Array.isArray(x)) return x.map(v => textOf(v, depth + 1)).join('\n');
+    if (typeof x === 'object') return Object.keys(x).map(k => textOf(x[k], depth + 1)).join('\n');
+    return '';
+  }
+  function js(v) {   // a JSON value that arrived as text
+    if (typeof v === 'string' && /^\s*[\[{]/.test(v)) { try { return JSON.parse(v); } catch (e) {} }
+    return v;
+  }
+  function rowsOf(res) {
+    let p = res ? res.payload : undefined;
+    const blocks = Array.isArray(p) && p.length && p[0] && typeof p[0] === 'object' && p[0].type === 'text' && 'text' in p[0];
+    if (Array.isArray(p) && !blocks) return p;
+    if (p && typeof p === 'object' && !blocks) {
+      for (const k of ['result', 'rows', 'data']) if (Array.isArray(p[k])) return p[k];
+    }
+    let txt = textOf(p, 0);
+    if (!/[\[]/.test(txt) && res) txt = textOf(res.content, 0) || txt;
+    let body = txt;
+    const tag = txt.match(/<untrusted-data-([\w-]+)>/);   // Supabase wraps the rows in <untrusted-data-ID> ... </untrusted-data-ID>
+    if (tag) {
+      const openTag = '<untrusted-data-' + tag[1] + '>', end = txt.lastIndexOf('</untrusted-data-' + tag[1] + '>');
+      let start = txt.indexOf(openTag + '\n');
+      if (start < 0 || start > end) start = txt.lastIndexOf(openTag, end);
+      if (start >= 0 && end > start) body = txt.slice(start + openTag.length, end);
+    }
+    try { const whole = JSON.parse(body.trim()); if (Array.isArray(whole)) return whole; } catch (e) {}
+    const i = body.indexOf('['), j = body.lastIndexOf(']');
+    if (i < 0 || j < i) throw new Error('Unexpected answer from the Supabase connector: ' + txt.slice(0, 200));
+    return JSON.parse(body.slice(i, j + 1));
+  }
+  async function adaptInput() {   // the connector names its arguments differently: read its schema once
+    try {
+      const d = await mcpNs.describeTool(CONNECTOR, SQL_TOOL);
+      const props = Object.keys((d && d.inputSchema && d.inputSchema.properties) || {});
+      const pr = props.find(p => /project/i.test(p)), q = props.find(p => /query|sql/i.test(p));
+      if (pr && q && (pr !== mcpInput.project || q !== mcpInput.query)) { mcpInput = { project: pr, query: q }; return true; }
+    } catch (e) {}
+    return false;
+  }
+  async function runSql(query, again) {
+    const mcp = await getMcp();
+    if (!mcp) throw connectorError({ code: 'not_granted' });
+    const input = {}; input[mcpInput.project] = PROJECT_REF; input[mcpInput.query] = query;
+    let res;
+    try { res = await mcp.callTool(CONNECTOR, SQL_TOOL, input, { cache: false }); }
+    catch (e) {
+      if (!again && e && e.code === 'tool_error' && /project|required|invalid|argument/i.test(String(e.message)) && await adaptInput()) return runSql(query, true);
+      throw connectorError(e);
+    }
+    return rowsOf(res);
+  }
+
+  // ---- one admin function (both versions). No password goes with it: in claude.ai the database owner's session is
+  // enough, on the web the server checks the signed-in login.
+  async function act(fn, args) {
+    args = Object.assign({}, args || {});
+    if ('pw' in args) args.pw = null;
+    if (IN_CLAUDE) {
+      const rows = await runSql('select ' + sqlCall(fn, args) + ' as r');
+      return checkAnswer(js(rows[0] ? rows[0].r : null));
+    }
+    return checkAnswer(await rpcWeb(fn, args));
+  }
+
+  // ---- everything the page shows (claude.ai: one round trip)
+  async function readAll() {
+    if (IN_CLAUDE) {
+      const rows = await runSql('select public.am_admin_list(null) as l, public.am_admin_status(null) as s, ' +
+                                'public.am_admin_cmds(null) as c, public.am_admin_bans(null) as b');
+      const r = rows[0] || {};
+      return { list: checkAnswer(js(r.l)), status: checkAnswer(js(r.s)), cmds: checkAnswer(js(r.c)), bans: checkAnswer(js(r.b)), missing: [] };
+    }
+    const out = { missing: [] };
+    out.list = checkAnswer(await rpcWeb('am_admin_list', { pw: null }));
+    const opt = async (fn, key) => {
+      try { out[key] = checkAnswer(await rpcWeb(fn, { pw: null })); }
+      catch (e) { if (e.missing) { out.missing.push(fn); out[key] = null; } else throw e; }
+    };
+    await Promise.all([opt('am_admin_status', 'status'), opt('am_admin_cmds', 'cmds'), opt('am_admin_bans', 'bans')]);
+    return out;
+  }
+
+  // ================================================================ small helpers
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function toast(msg, bad) {
+    const t = el('div', 'toast' + (bad ? ' err' : ''), msg); document.body.append(t);
+    setTimeout(() => t.remove(), 4000);
+  }
+  function fmtLeft(ms) {
+    if (ms <= 0) return 'expired';
+    const s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600),
+          m = Math.floor(s % 3600 / 60), sec = s % 60;
+    if (d >= 365) { const y = Math.floor(d / 365.25), rd = Math.floor(d - y * 365.25);
+                    return y + (y === 1 ? ' year' : ' years') + (y < 3 && rd ? ' ' + rd + 'd' : '') + ' left'; }
+    if (d > 0) return d + 'd ' + h + 'h ' + m + 'm left';
+    if (h > 0) return h + 'h ' + m + 'm ' + String(sec).padStart(2, '0') + 's left';
+    return m + 'm ' + String(sec).padStart(2, '0') + 's left';
+  }
+  function fmtIn(ms) {
+    if (ms <= 0) return 'now';
+    const m = Math.ceil(ms / 60000);
+    if (m < 60) return m + ' min';
+    const h = Math.floor(m / 60);
+    if (h < 48) return h + ' h ' + (m % 60) + ' min';
+    return Math.floor(h / 24) + ' days';
+  }
+  function ago(t) {
+    const s = Math.max(0, Math.floor((now() - Date.parse(t)) / 1000));
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + ' min ago';
+    if (s < 86400) return Math.floor(s / 3600) + ' h ago';
+    return Math.floor(s / 86400) + ' days ago';
+  }
+  function dur(min) { return min >= 60 ? Math.floor(min / 60) + 'h ' + (min % 60) + 'm' : min + 'm'; }
+  const isOnline = p => now() - Date.parse(p.last_seen) < ONLINE_MS;
+  function status(k) {
+    if (k.revoked) return 'off';
+    return Date.parse(k.expires_at) > now() ? 'active' : 'expired';
+  }
+  function liveMiner(player, key) {   // this character's miner takes phone orders right now
+    return alts.find(a => a.p === player && (key == null || a.k === key) && now() - Date.parse(a.seen) < ORDERS_MS) || null;
+  }
+
+  // ---- dialogs (alert / confirm / prompt do not work on every phone, and not at all inside claude.ai)
+  function ask(o) {
+    return new Promise(resolve => {
+      const back = el('div', 'dlg-back'), box = el('div', 'dlg');
+      box.append(el('h3', null, o.title || ''));
+      if (o.text) box.append(el('div', 'txt', o.text));
+      const inputs = {};
+      for (const f of (o.fields || [])) {
+        const w = el('div', 'field');
+        if (f.label) w.append(el('label', null, f.label));
+        let inp;
+        if (f.type === 'select') {
+          inp = el('select');
+          for (const op of f.options) { const x = el('option', null, op.label); x.value = op.value; inp.append(x); }
+          if (f.value != null) inp.value = String(f.value);
+        } else {
+          inp = el('input');
+          inp.type = f.type || 'text';
+          if (f.type === 'number') inp.inputMode = 'decimal';
+          if (f.value != null) inp.value = f.value;
+          if (f.placeholder) inp.placeholder = f.placeholder;
+          if (f.max) inp.maxLength = f.max;
+          if (f.readOnly) inp.readOnly = true;
+          inp.autocomplete = 'off';
+        }
+        inputs[f.id] = inp; w.append(inp); box.append(w);
+      }
+      const errBox = el('div', 'err'); box.append(errBox);
+      const bar = el('div', 'dbtns');
+      const close = v => { document.removeEventListener('keydown', onKey); back.remove(); resolve(v); };
+      const values = () => { const v = {}; for (const k in inputs) v[k] = inputs[k].value; return v; };
+      const buttons = o.buttons || [{ label: 'Cancel', value: null }, { label: o.ok || 'OK', value: 'ok', cls: o.okClass || 'primary' }];
+      for (const b of buttons) {
+        const bt = el('button', b.cls || '', b.label);
+        bt.onclick = () => {
+          if (b.value === null) return close(null);
+          const v = values();
+          if (o.check) { const m = o.check(v, b.value); if (m) { errBox.textContent = m; return; } }
+          close({ button: b.value, values: v });
+        };
+        bar.append(bt);
+      }
+      box.append(bar);
+      const onKey = e => {
+        if (e.key === 'Escape') close(null);
+        if (e.key === 'Enter' && e.target && e.target.tagName === 'INPUT') { bar.lastChild.click(); }
+      };
+      document.addEventListener('keydown', onKey);
+      back.addEventListener('click', e => { if (e.target === back) close(null); });
+      back.append(box); document.body.append(back);
+      const first = Object.values(inputs)[0];
+      if (first && !first.readOnly) setTimeout(() => first.focus(), 30);
+    });
+  }
+  const confirmBox = (title, text, ok, okClass) => ask({ title, text, ok: ok || 'Yes', okClass: okClass || 'primary' }).then(r => !!r);
+  const infoBox = (title, text) => ask({ title, text, buttons: [{ label: 'OK', value: 'ok', cls: 'primary' }] });
+
+  function copy(text, b) {
+    const done = () => { const o = b.textContent; b.textContent = 'Copied!'; setTimeout(() => { b.textContent = o; }, 1200); };
+    const manual = () => ask({ title: 'Copy this', fields: [{ id: 't', value: text, readOnly: true }],
+                               buttons: [{ label: 'Close', value: 'ok', cls: 'primary' }] });
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, manual);
+      else manual();
+    } catch (e) { manual(); }
+  }
+
+  // runs one action from a button: busy state, the answer as a toast, then a fresh read
+  async function doAction(btnEl, fn, okMsg) {
+    if (btnEl) btnEl.disabled = true;
+    try {
+      const r = await fn();
+      if (okMsg) toast(typeof okMsg === 'function' ? okMsg(r) : okMsg);
+      await refresh(true);
+    } catch (e) {
+      if (!IN_CLAUDE && (e.signedOut || e.notLinked)) { if (e.notLinked) await signOut(); showLogin(e.message); return; }
+      toast(e.message, true);
+      if (e.authz && IN_CLAUDE) showConnect(e.message, true);
+    } finally { if (btnEl) btnEl.disabled = false; }
+  }
+  function button(text, cls, onClick) {
+    const b = el('button', cls || 'small', text);
+    b.addEventListener('click', () => onClick(b));
+    return b;
+  }
+
+  // ================================================================ start: web version (email + password) / claude.ai version (connector)
+  function showLogin(msg, setup) {
+    loggedIn = false;
+    $('main').classList.add('hide'); $('connect').classList.add('hide'); $('login').classList.remove('hide');
+    $('cfgUrl').value = cfg.url; $('cfgKey').value = cfg.key;
+    if (!$('liEmail').value) $('liEmail').value = AUTH.email || store.get('am_email');
+    $('liPw').value = '';
+    showSetup(!!setup);
+    $(setup ? 'setupErr' : 'loginErr').textContent = msg || '';
+  }
+  function showSetup(on) {
+    $('signinBox').classList.toggle('hide', on); $('setupBox').classList.toggle('hide', !on);
+    if (on && !$('suEmail').value) $('suEmail').value = $('liEmail').value.trim();
+    $('loginErr').textContent = ''; $('setupErr').textContent = '';
+  }
+  function readServer() {   // the fields under "Server" (filled in already; only changed if Supabase moves)
+    const url = $('cfgUrl').value.trim().replace(/\/+$/, ''), key = $('cfgKey').value.trim();
+    if (!/^(https:\/\/.+|http:\/\/(localhost|127\.0\.0\.1)(:\d+)?)$/.test(url)) throw new Error('Server: the Project URL must start with https://');
+    if (!key) throw new Error('Server: paste the publishable key.');
+    cfg.url = url; cfg.key = key; store.set('am_url', url); store.set('am_key', key);
+  }
+  async function enter() {   // signed in: does this login control the panel? then show it
+    let w;
+    try { w = await rpcWeb('am_whoami'); }
+    catch (e) { if (e.missing) throw new Error('The server is not updated for email sign-in yet.'); throw e; }
+    if (!w || !w.admin) { await signOut(); const er = new Error(NOT_LINKED); er.notLinked = true; throw er; }
+    if (w.email) { AUTH.email = w.email; store.set('am_email', w.email); }
+    $('modeBadge').textContent = 'signed in as ' + (AUTH.email || 'you');
+    await refresh();
+    showMain();
+  }
+  const keepChoice = () => store.set('am_keep', $('liKeep').checked === false ? '0' : '1');
+  async function doLogin() {
+    $('loginErr').textContent = '';
+    const email = $('liEmail').value.trim(), pw = $('liPw').value;
+    if (!email || !pw) { $('loginErr').textContent = 'Type your email and password.'; return; }
+    $('loginBtn').disabled = true;
+    try {
+      readServer(); keepChoice();
+      await signIn(email, pw);
+      $('liPw').value = '';
+      await enter();
+    } catch (e) { $('loginErr').textContent = e.message; }
+    finally { $('loginBtn').disabled = false; }
+  }
+  async function doSetup() {
+    $('setupErr').textContent = '';
+    const email = $('suEmail').value.trim(), pw = $('suPw').value, pw2 = $('suPw2').value, panelPw = $('suPanel').value;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { $('setupErr').textContent = 'Type a valid email address.'; return; }
+    if (pw.length < 8) { $('setupErr').textContent = 'The new password needs at least 8 characters.'; return; }
+    if (pw !== pw2) { $('setupErr').textContent = 'The two new passwords are different.'; return; }
+    if (!panelPw) { $('setupErr').textContent = 'Type your panel password.'; return; }
+    $('setupBtn').disabled = true;
+    try {
+      readServer(); keepChoice();
+      await setupLogin(email, pw, panelPw);
+      $('suPw').value = ''; $('suPw2').value = ''; $('suPanel').value = '';
+      $('liEmail').value = email;
+      await signIn(email, pw);
+      await enter();
+      toast('Your login is ready.');
+    } catch (e) { $('setupErr').textContent = e.message; }
+    finally { $('setupBtn').disabled = false; }
+  }
+  function showMain() {
+    loggedIn = true;
+    $('login').classList.add('hide'); $('connect').classList.add('hide'); $('main').classList.remove('hide');
+  }
+  function showConnect(msg, failed) {
+    loggedIn = false;
+    $('main').classList.add('hide'); $('login').classList.add('hide'); $('connect').classList.remove('hide');
+    $('connectText').textContent = failed ? 'The page could not reach your Supabase.' : 'Connecting to your Supabase through your connector...';
+    $('connectErr').textContent = msg || '';
+    $('connectBtn').classList.toggle('hide', !failed);
+  }
+  async function connect() {
+    showConnect('', false);
+    $('connectBtn').disabled = true;
+    try {
+      const mcp = await getMcp();
+      if (!mcp) throw connectorError({ code: 'not_granted' });
+      await refresh();
+      showMain();
+    } catch (e) { showConnect(e.message, true); }
+    finally { $('connectBtn').disabled = false; }
+  }
+
+  // ================================================================ reading + drawing
+  let refreshing = null;
+  async function refresh(quiet) {
+    if (refreshing) return refreshing;
+    refreshing = (async () => {
+      try {
+        const r = await readAll();
+        data = r.list || { keys: [] };
+        clockSkew = Date.parse(data.server_time) - Date.now();
+        if (!isFinite(clockSkew)) clockSkew = 0;
+        alts = (r.status && r.status.alts) || [];
+        cmds = (r.cmds && r.cmds.cmds) || [];
+        bans = (r.bans && r.bans.bans) || [];
+        $('lastUpdate').textContent = 'updated ' + new Date().toLocaleTimeString();
+        const miss = r.missing || [];
+        const bn = $('banner');
+        bn.className = 'banner' + (miss.length ? '' : ' hide');
+        if (miss.length) {
+          bn.textContent = 'Not installed in Supabase yet: ' + miss.join(', ') +
+            (miss.includes('am_admin_bans') ? ' - run setup_phone_v2.sql in the Supabase SQL Editor.' : ' - run setup_commands.sql in the Supabase SQL Editor.');
+        }
+        render();
+      } catch (e) {
+        if (!IN_CLAUDE && loggedIn && (e.signedOut || e.notLinked)) { if (e.notLinked) await signOut(); showLogin(e.message); return; }
+        if (!quiet) throw e;
+        const bn = $('banner'); bn.textContent = 'Could not refresh: ' + e.message; bn.className = 'banner bad';
+        if (e.authz && IN_CLAUDE) showConnect(e.message, true);
+      } finally { refreshing = null; }
+    })();
+    return refreshing;
+  }
+
+  function render() {
+    const keys = data.keys || [];
+    let online = 0, players = 0, active = 0;
+    for (const k of keys) {
+      players += k.players.length;
+      online += k.players.filter(isOnline).length;
+      if (status(k) === 'active') active++;
+    }
+    $('sOnline').textContent = online; $('sPlayers').textContent = players;
+    $('sActive').textContent = active + ' / ' + keys.length; $('sBanned').textContent = bans.length;
+    renderAlts();
+    renderBans();
+    const q = $('search').value.trim().toLowerCase(), f = $('filter').value;
+    const list = keys.filter(k => {
+      const st = status(k);
+      if (f === 'online' && !k.players.some(isOnline)) return false;
+      if (f !== 'all' && f !== 'online' && st !== f) return false;
+      if (!q) return true;
+      return k.key.toLowerCase().includes(q) || (k.note || '').toLowerCase().includes(q) ||
+             k.players.some(p => p.player.includes(q)) || bans.some(b => b.key === k.key && b.player.includes(q));
+    });
+    $('keysBar').classList.toggle('hide', keys.length < 4 && !q && f === 'all');
+    const box = $('keys'); box.textContent = '';
+    if (!list.length) {
+      box.append(el('div', 'empty panel', keys.length ? 'No keys match.' : 'No keys yet - create one above.'));
+      return;
+    }
+    for (const k of list) box.append(keyCard(k));
+  }
+
+  // ---- one key
+  function keyCard(k) {
+    const st = status(k);
+    const card = el('div', 'key' + (st === 'active' ? '' : ' off'));
+    const head = el('div', 'khead');
+    head.append(el('code', null, k.key));
+    head.append(button('Copy', 'xs', b => copy(k.key, b)));
+    head.append(el('span', 'badge ' + ({ active: 'b-ok', expired: 'b-exp', off: 'b-off' })[st],
+                   ({ active: 'Active', expired: 'Expired', off: 'Turned off' })[st]));
+    const left = el('span', 'left'); left.dataset.exp = k.expires_at; left.textContent = fmtLeft(Date.parse(k.expires_at) - now());
+    head.append(left);
+    if (k.note) head.append(el('span', 'note', '- ' + k.note));
+    card.append(head);
+
+    // time on the key
+    const tm = el('div', 'section btns');
+    tm.append(el('span', 'lbl', 'Time'));
+    const t = (label, mins, cls) => button(label, 'xs' + (cls ? ' ' + cls : ''), b => changeTime(b, k, mins));
+    tm.append(t('-1d', -1440, 'danger'), t('+1d', 1440, 'good'), t('+7d', 10080, 'good'), t('+30d', 43200, 'good'),
+              t('-1h', -60, 'danger'), t('+1h', 60, 'good'), t('+10m', 10, 'good'));
+    tm.append(button('Other...', 'xs', b => customTime(b, k)));
+    tm.append(button('Set left...', 'xs', b => setLeft(b, k)));
+    card.append(tm);
+
+    // characters on the key
+    const sec = el('div', 'section');
+    const kicked = bans.filter(b => b.key === k.key && b.ends_at);
+    const onl = k.players.filter(isOnline).length;
+    const fresh = k.players.filter(p => isOnline(p) || now() - Date.parse(p.last_seen) < OLD_MS);
+    const old = k.players.filter(p => !fresh.includes(p));
+    const live = k.players.filter(p => liveMiner(p.player, k.key)).length;
+    sec.append(el('div', 'chead', 'Characters ' + k.players.length + ' / ' + k.max_players +
+                  (k.players.length ? '  -  ' + onl + ' online' : '') + (kicked.length ? '  -  ' + kicked.length + ' kicked' : '')));
+    if (k.players.length && live < k.players.length)
+      sec.append(el('div', 'note1', live ? 'Message and Teleport show only on characters that run the newer AutoMiner.'
+                                        : 'Message and Teleport show up here once a character runs the newer AutoMiner.'));
+    const pls = el('div', 'players'); pls.style.marginTop = '6px';
+    if (!k.players.length && !kicked.length) pls.append(el('div', 'muted', 'Nobody has used this key yet.'));
+    for (const b of kicked) pls.append(kickedRow(k, b));
+    for (const p of fresh) pls.append(playerRow(k, p));
+    if (old.length) {
+      const box = el('div', 'players' + (openOld.has(k.key) ? '' : ' hide'));
+      for (const p of old) box.append(playerRow(k, p));
+      const tg = el('button', 'more', '');
+      const label = () => { tg.textContent = (openOld.has(k.key) ? 'Hide ' : 'Show ') + old.length + ' not seen in the last day'; };
+      label();
+      tg.addEventListener('click', () => {
+        if (openOld.has(k.key)) openOld.delete(k.key); else openOld.add(k.key);
+        box.classList.toggle('hide', !openOld.has(k.key)); label();
+      });
+      pls.append(tg, box);
+    }
+    sec.append(pls);
+    card.append(sec);
+
+    // key settings
+    const set = el('div', 'section btns');
+    set.append(el('span', 'lbl', 'Key'));
+    set.append(button('Max characters', 'xs', async b => {
+      const r = await ask({ title: 'Max characters', text: 'How many different characters may use ' + k.key + '?',
+                            fields: [{ id: 'n', type: 'number', value: k.max_players }], ok: 'Save',
+                            check: v => (parseInt(v.n, 10) >= 1 ? '' : 'At least 1.') });
+      if (r) doAction(b, () => act('am_admin_update', { pw: '', k: k.key, set_max: Math.max(1, parseInt(r.values.n, 10) || 1) }), 'Saved.');
+    }));
+    set.append(button('Note', 'xs', async b => {
+      const r = await ask({ title: 'Note', text: 'Who is this key for?', fields: [{ id: 'n', value: k.note || '', max: 100 }], ok: 'Save' });
+      if (r) doAction(b, () => act('am_admin_update', { pw: '', k: k.key, set_note: r.values.n.trim() }), 'Saved.');
+    }));
+    if (k.revoked) set.append(button('Turn ON', 'xs good', b => doAction(b, () => act('am_admin_update', { pw: '', k: k.key, set_revoked: false }), 'Key is ON again.')));
+    else set.append(button('Turn OFF', 'xs danger', async b => {
+      if (await confirmBox('Turn the key off?', 'Every character on ' + k.key + ' stops at its next key check (within 5 minutes). You can turn it on again.', 'Turn off', 'primary'))
+        doAction(b, () => act('am_admin_update', { pw: '', k: k.key, set_revoked: true }), 'Key turned off.');
+    }));
+    set.append(button('Delete', 'xs danger', async b => {
+      if (await confirmBox('Delete this key for good?', k.key + (k.note ? ' (' + k.note + ')' : '') + ' is removed and cannot be used again.', 'Delete', 'primary'))
+        doAction(b, () => act('am_admin_delete', { pw: '', k: k.key }), 'Key deleted.');
+    }));
+    card.append(set);
+    return card;
+  }
+
+  // ---- one character on a key
+  function playerRow(k, p) {
+    const on = isOnline(p);
+    const row = el('div', 'pl' + (on ? '' : ' away'));
+    row.append(el('span', 'dot' + (on ? ' on' : '')));
+    const who = el('div', 'who');
+    who.append(el('span', 'name', p.player));
+    who.append(el('span', 'st' + (on ? ' on' : ''), on ? 'online' : ago(p.last_seen)));
+    const live = liveMiner(p.player, k.key);
+    if (live) {
+      const i = live.info || {};
+      const where = i.mine ? (SHORT_MINE[String(i.cave || '').toLowerCase()] || i.cave || 'a mine') : 'not in a mine';
+      who.append(el('span', 'badge b-info', where + (i.on === false ? ' - OFF' : '')));
+    }
+    row.append(who);
+    const acts = el('div', 'acts');
+    if (live) {
+      acts.append(button('Message', 'xs', b => messageTo(b, p.player, live)));
+      acts.append(button('Teleport', 'xs', b => teleport(b, p.player, live)));
+    }
+    acts.append(button('Kick', 'xs danger', b => kick(b, k, p.player)));
+    const blk = blockOf(p.player, k.key);
+    if (blk && !blk.ends_at) {
+      who.append(el('span', 'badge b-off', 'BLACKLISTED'));
+      acts.append(liftBtn(p.player));
+    } else {
+      acts.append(button('Blacklist', 'xs danger', b => blacklist(b, p.player)));
+    }
+    row.append(acts);
+    return row;
+  }
+  function kickedRow(k, b) {
+    const row = el('div', 'pl kicked');
+    row.append(el('span', 'dot bad'));
+    const who = el('div', 'who');
+    who.append(el('span', 'name', b.player));
+    const left = el('span', 'st', 'kicked, back in ' + fmtIn(Date.parse(b.ends_at) - now()));
+    left.dataset.back = b.ends_at; who.append(left);
+    row.append(who);
+    const acts = el('div', 'acts');
+    acts.append(button('Let back in', 'xs good', btn => doAction(btn, () => act('am_admin_unban', { pw: '', p: b.player }), b.player + ' can use the key again.')));
+    acts.append(button('Blacklist', 'xs danger', btn => blacklist(btn, b.player)));
+    row.append(acts);
+    return row;
+  }
+
+  // ---- the actions
+  async function changeTime(b, k, mins, confirmed) {
+    const word = (mins > 0 ? 'Add ' : 'Take off ') + fmtMins(Math.abs(mins));
+    if (mins < 0 && !confirmed && !(await confirmBox(word + '?', k.key + (k.note ? ' (' + k.note + ')' : '') + ' now has ' + fmtLeft(Date.parse(k.expires_at) - now()) + '.', 'Take off', 'primary'))) return;
+    doAction(b, () => act('am_admin_time', { pw: '', k: k.key, mins }), r => {
+      const e = String(r || '').split('|')[1];
+      return (mins > 0 ? 'Added ' : 'Took off ') + fmtMins(Math.abs(mins)) + (e ? ' - now ' + fmtLeft(Date.parse(e) - now()) : '');
+    });
+  }
+  function fmtMins(m) {
+    if (m % 1440 === 0) return (m / 1440) + (m === 1440 ? ' day' : ' days');
+    if (m % 60 === 0) return (m / 60) + (m === 60 ? ' hour' : ' hours');
+    return m + (m === 1 ? ' minute' : ' minutes');
+  }
+  async function customTime(b, k) {
+    const r = await ask({
+      title: 'Change the time of the key',
+      text: k.key + (k.note ? ' (' + k.note + ')' : '') + ' - now ' + fmtLeft(Date.parse(k.expires_at) - now()),
+      fields: [{ id: 'n', label: 'How much', type: 'number', value: '1' },
+               { id: 'u', label: 'Unit', type: 'select', value: '60',
+                 options: [{ value: '1', label: 'minutes' }, { value: '60', label: 'hours' }, { value: '1440', label: 'days' }] }],
+      buttons: [{ label: 'Cancel', value: null }, { label: 'Take off', value: -1, cls: 'danger' }, { label: 'Add', value: 1, cls: 'primary' }],
+      check: v => { const n = parseFloat(v.n); return n > 0 ? '' : 'Type a number above 0.'; }
+    });
+    if (!r) return;
+    const mins = Math.round(parseFloat(r.values.n) * parseInt(r.values.u, 10)) * r.button;
+    if (!mins) return toast('That is less than a minute.', true);
+    changeTime(b, k, mins, true);
+  }
+  async function setLeft(b, k) {   // the key ends exactly this long from now (more or less than it has now)
+    const r = await ask({
+      title: 'Set the time left',
+      text: k.key + (k.note ? ' (' + k.note + ')' : '') + ' - now ' + fmtLeft(Date.parse(k.expires_at) - now()) +
+            '. After this the key ends this long from now.',
+      fields: [{ id: 'n', label: 'Time left', type: 'number', value: '7' },
+               { id: 'u', label: 'Unit', type: 'select', value: '1440',
+                 options: [{ value: '1', label: 'minutes' }, { value: '60', label: 'hours' }, { value: '1440', label: 'days' }] }],
+      ok: 'Set', okClass: 'primary',
+      check: v => {
+        const n = parseFloat(v.n), m = Math.round(n * parseInt(v.u, 10));
+        if (!(n > 0) || m < 1) return 'Type a number above 0 (at least 1 minute).';
+        return m > 52560000 ? 'That is more than 100 years.' : '';
+      }
+    });
+    if (!r) return;
+    const mins = Math.round(parseFloat(r.values.n) * parseInt(r.values.u, 10));
+    doAction(b, () => act('am_admin_settime', { pw: '', k: k.key, mins }), res => {
+      const e = String(res || '').split('|')[1];
+      return 'The key now ends in ' + (e ? fmtLeft(Date.parse(e) - now()).replace(/ left$/, '') : fmtMins(mins)) + '.';
+    });
+  }
+  async function kick(b, k, player) {
+    const r = await ask({
+      title: 'Kick ' + player + '?',
+      text: 'Takes ' + player + ' off this key. Its miner stops at the next key check (within 5 minutes) and shows "Your key was turned OFF by the owner." It can come back after the time you choose.',
+      fields: [{ id: 'm', label: 'Kicked for', type: 'select', value: '60',
+                 options: [{ value: '10', label: '10 minutes' }, { value: '30', label: '30 minutes' }, { value: '60', label: '1 hour' },
+                           { value: '180', label: '3 hours' }, { value: '720', label: '12 hours' }, { value: '1440', label: '1 day' },
+                           { value: '4320', label: '3 days' }, { value: '10080', label: '7 days' }] }],
+      ok: 'Kick', okClass: 'primary'
+    });
+    if (r) doAction(b, () => act('am_admin_kick2', { pw: '', k: k.key, p: player, mins: parseInt(r.values.m, 10) }), player + ' kicked.');
+  }
+  async function blacklist(b, player) {
+    const r = await ask({
+      title: 'Blacklist ' + player + '?',
+      text: 'No key will work for ' + player + ' until you lift it. Its miner stops at the next key check (within 5 minutes).',
+      fields: [{ id: 'w', label: 'Reason (only you see it)', max: 200, placeholder: 'optional' }],
+      ok: 'Blacklist', okClass: 'primary'
+    });
+    if (r) doAction(b, () => act('am_admin_ban', { pw: '', p: player, why: r.values.w.trim() }), player + ' is blacklisted.');
+  }
+  async function messageTo(b, player, live) {
+    if (!live) return infoBox('Cannot message ' + player + ' yet',
+      player + ' does not run the newer AutoMiner, or it has not reported in the last 15 minutes. Messages and teleport reach only the newer build. Kick, blacklist and key time work on every build.');
+    const r = await ask({ title: 'Message to ' + player, text: 'Shows in their game chat within 30 seconds.',
+                          fields: [{ id: 't', max: 200, placeholder: 'Your message' }], ok: 'Send',
+                          check: v => (v.t.trim() ? '' : 'Type the message first.') });
+    if (r) sendOrder(b, 'p:' + player, 'msg', r.values.t.trim(), player);
+  }
+  async function teleport(b, player, live) {
+    if (!live) return infoBox('Cannot teleport ' + player + ' yet',
+      player + ' does not run the newer AutoMiner, or it has not reported in the last 15 minutes. Teleport reaches only the newer build.');
+    const i = live.info || {};
+    const r = await ask({ title: 'Teleport ' + player, text: 'Now: ' + (i.mine ? (i.cave || 'a mine') : 'not in a mine'),
+                          fields: [{ id: 'm', label: 'To', type: 'select', value: MINE_LIST[0], options: MINE_LIST.map(m => ({ value: m, label: m })) }],
+                          ok: 'Teleport' });
+    if (r) sendOrder(b, 'p:' + player, 'move', r.values.m, player);
+  }
+  const ACT_NAME = { reset: 'RESET (leave and enter the mine again)', chan1: 'go to CHANNEL 1', move: 'TELEPORT', stop: 'STOP the miner',
+                     start: 'START the miner', msg: 'send a MESSAGE', restart: 'RESTART (log out, character screen, Play)' };
+  async function sendOrder(b, target, action, arg, who) {
+    const bulk = !target.startsWith('p:');
+    if (bulk || action === 'stop' || action === 'restart') {
+      const label = bulk ? ($('tgt').selectedOptions[0] ? $('tgt').selectedOptions[0].textContent : target) : who;
+      if (!(await confirmBox(ACT_NAME[action] + '?', (arg ? arg + '\n' : '') + 'For: ' + label, 'Send'))) return;
+    }
+    doAction(b, () => act('am_admin_cmd', { pw: '', target, action, arg: arg || '' }), r => {
+      const n = parseInt(String(r).split(':')[1], 10) || 0;
+      return n ? 'Sent to ' + n + ' miner' + (n === 1 ? '' : 's') + ' - picked up within 30 s.' : 'No miner that takes orders reported in the last 15 minutes - nothing sent.';
+    });
+  }
+
+  // ---- blacklist panel
+  function renderBans() {
+    const box = $('bans'); box.textContent = '';
+    const list = bans.filter(b => !b.key);
+    $('banCount').textContent = list.length ? list.length + ' blacklisted' : 'nobody';
+    if (!list.length) { box.append(el('div', 'muted small-text', 'Nobody is blacklisted.')); return; }
+    for (const b of list) {
+      const r = el('div', 'ban');
+      r.append(el('span', 'dot bad'));
+      r.append(el('span', 'name', b.player));
+      r.append(el('span', 'muted small-text', 'since ' + new Date(b.created).toLocaleDateString() + (b.note ? ' - ' + b.note : '')));
+      r.append(el('span', 'sp'));
+      r.append(button('Lift', 'xs good', btn => doAction(btn, () => act('am_admin_unban', { pw: '', p: b.player }), b.player + ' is off the blacklist.')));
+      box.append(r);
+    }
+  }
+
+  // ---- live miners
+  function ownerLabel(a) {
+    if (a.k === 'owner') return 'you';
+    const known = (data.keys || []).some(k => k.key === a.k);
+    return (a.note ? a.note : a.k) + (known ? '' : ' - deleted key');
+  }
+  // the kick or blacklist that stops this character on this key right now (a blacklist wins), or null
+  function blockOf(player, key) {
+    const t = now();
+    const on = bans.filter(b => b.player === player && (!b.key || b.key === key) && (!b.ends_at || Date.parse(b.ends_at) > t));
+    return on.find(b => !b.ends_at) || on[0] || null;
+  }
+  function liftBtn(player) {
+    return button('Lift', 'xs good', b => doAction(b, () => act('am_admin_unban', { pw: '', p: player }), player + ' can play again.'));
+  }
+  function renderAlts() {
+    const nowMs = now();
+    const sel = $('tgt'), keep = sel.value;
+    const keys = [...new Set(alts.filter(a => a.k !== 'owner').map(a => a.k))];
+    sel.textContent = '';
+    const add = (v, t) => { const o = el('option', null, t); o.value = v; sel.append(o); };
+    add('all', 'All miners (' + alts.length + ')');
+    add('owner', 'My miners (' + alts.filter(a => a.k === 'owner').length + ')');
+    for (const k of keys) {
+      const n = alts.find(a => a.k === k);
+      add('key:' + k, (n && n.note ? n.note + ' - ' : '') + k + ' (' + alts.filter(a => a.k === k).length + ')');
+    }
+    if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
+    const live = alts.filter(a => nowMs - Date.parse(a.seen) < 120000).length;
+    $('liveInfo').textContent = alts.length ? live + ' of ' + alts.length + ' reporting now' : '';
+    $('liveCtl').classList.toggle('hide', !alts.length);
+    $('liveNone').classList.toggle('hide', !!alts.length);
+    const box = $('alts'); box.textContent = '';
+    for (const a of alts) {
+      const i = a.info || {}, age = nowMs - Date.parse(a.seen);
+      const card = el('div', 'alt' + (age > 300000 ? ' stale' : ''));
+      const top = el('div', 'top');
+      top.append(el('span', 'dot' + (age < 90000 ? ' on' : age < 300000 ? ' mid' : '')));
+      top.append(el('span', 'nm', a.p));
+      top.append(el('span', 'muted', '(' + ownerLabel(a) + ')'));
+      const blk = blockOf(a.p, a.k);
+      if (blk) top.append(el('span', 'badge b-off', blk.ends_at ? 'KICKED' : 'BLACKLISTED'));
+      card.append(top);
+      const meta = el('div', 'meta');
+      const cave = String(i.cave || '').toLowerCase();
+      meta.append(el('span', null, i.mine ? (SHORT_MINE[cave] || i.cave || 'mine') : 'not in a mine'));
+      meta.append(el('span', i.on === false ? 'bad' : null, i.on === false ? 'miner OFF' : 'mining'));
+      if (i.run != null) meta.append(el('span', null, 'up ' + dur(i.run)));
+      if (i.idle != null && i.mine) meta.append(el('span', i.idle >= 120 ? 'bad' : i.idle >= 60 ? 'warn' : null, 'no spawn ' + dur(i.idle)));
+      if (i.step) meta.append(el('span', 'warn', 'recovery step ' + i.step));
+      if (i.tk != null && i.tk >= 0) meta.append(el('span', i.tk <= 1 ? 'warn' : null, 'tickets ' + i.tk));
+      if (i.mined != null) meta.append(el('span', null, 'rocks ' + i.mined + '/' + i.spawned));
+      meta.append(el('span', null, age < 90000 ? 'live' : 'seen ' + ago(a.seen)));
+      card.append(meta);
+      const acts = el('div', 'acts');
+      const tgt = 'p:' + a.p;
+      const ob = (text, action, cls) => button(text, 'xs' + (cls ? ' ' + cls : ''), b => sendOrder(b, tgt, action, '', a.p));
+      acts.append(ob('Reset', 'reset'), ob('Chan 1', 'chan1'));
+      acts.append(i.on === false ? ob('Start', 'start', 'good') : ob('Stop', 'stop', 'danger'));
+      acts.append(button('Teleport', 'xs', b => teleport(b, a.p, a)));
+      acts.append(button('Message', 'xs', b => messageTo(b, a.p, a)));
+      acts.append(ob('Restart', 'restart'));
+      if (blockOf(a.p, a.k)) acts.append(liftBtn(a.p));
+      card.append(acts);
+      box.append(card);
+    }
+    const cb = $('cmds'); cb.textContent = '';
+    for (const c of cmds.slice(0, 25)) {
+      const r = el('div', 'cmdrow');
+      r.append(el('span', 'muted', new Date(c.created).toLocaleTimeString()));
+      r.append(el('b', null, c.action + (c.arg ? ' ' + c.arg : '')));
+      r.append(el('span', null, c.plr));
+      r.append(el('span', c.delivered ? 'muted' : 'warn', c.delivered ? 'picked up ' + ago(c.delivered) : 'waiting...'));
+      cb.append(r);
+    }
+    if (!cmds.length) cb.append(el('div', 'muted', 'No orders sent yet.'));
+  }
+
+  // ================================================================ events
+  for (const m of MINE_LIST) { const o = el('option', null, m); o.value = m; $('mvSel').append(o); }
+  $('loginBtn').onclick = doLogin;
+  ['liEmail', 'liPw'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); }));
+  $('setupBtn').onclick = doSetup;
+  ['suEmail', 'suPw', 'suPw2', 'suPanel'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doSetup(); }));
+  $('toSetup').onclick = () => showSetup(true);
+  $('toSignin').onclick = () => showSetup(false);
+  $('connectBtn').onclick = connect;
+  $('refreshBtn').onclick = () => refresh().then(() => { if (loggedIn) toast('Updated.'); }).catch(e => { toast(e.message, true); if (e.authz && IN_CLAUDE) showConnect(e.message, true); });
+  $('logoutBtn').onclick = () => { signOut().then(() => showLogin('Signed out.')); };
+  $('pwBtn').onclick = async () => {
+    const twice = (min) => v => (v.n.length < min ? 'At least ' + min + ' characters.' : v.n !== v.n2 ? 'The two are different.' : '');
+    if (IN_CLAUDE) {
+      const r = await ask({ title: 'Change the panel password', ok: 'Change', check: twice(6),
+                            text: 'The panel password proves it is you when you set up (or reset) a web login. The panel file uses it too.',
+                            fields: [{ id: 'n', label: 'New panel password (min 6 characters)', type: 'password' }, { id: 'n2', label: 'Repeat it', type: 'password' }] });
+      if (!r) return;
+      try { checkAnswer(await act('am_set_password', { new_pw: r.values.n, old_pw: null })); toast('Panel password changed.'); }
+      catch (e) { toast(e.message, true); }
+      return;
+    }
+    const r = await ask({ title: 'Change a password', ok: 'Change',
+                          fields: [{ id: 'w', label: 'Which password', type: 'select', value: 'login',
+                                     options: [{ value: 'login', label: 'My sign-in password' }, { value: 'panel', label: 'Panel password (for setting up logins)' }] },
+                                   { id: 'n', label: 'New password', type: 'password' }, { id: 'n2', label: 'Repeat it', type: 'password' }],
+                          check: v => twice(v.w === 'login' ? 8 : 6)(v) });
+    if (!r) return;
+    try {
+      if (r.values.w === 'login') { await gotrue('user', { password: r.values.n }, 'PUT', await accessToken()); toast('Sign-in password changed.'); }
+      else { checkAnswer(await act('am_set_password', { new_pw: r.values.n, old_pw: null })); toast('Panel password changed.'); }
+    } catch (e) { toast(e.message, true); }
+  };
+
+  // ---- web logins (read when the section is opened)
+  async function loadLogins() {
+    $('loginsErr').textContent = '';
+    try {
+      const r = await act('am_admin_logins', { pw: '' });
+      renderLogins((r && r.logins) || []);
+    } catch (e) {
+      $('loginsErr').textContent = /does not exist|not found|not updated/i.test(e.message) ? 'The server is not updated for web logins yet.' : e.message;
+    }
+  }
+  function renderLogins(list) {
+    const box = $('logins'); box.textContent = '';
+    $('loginsCount').textContent = list.length ? list.length + (list.length === 1 ? ' login' : ' logins') : 'none yet';
+    if (!list.length) { box.append(el('div', 'muted small-text', 'None yet. On the web version tap "First time here" to make one.')); return; }
+    for (const l of list) {
+      const row = el('div', 'lrow');
+      row.append(el('span', 'name', l.email || '(no email)'));
+      if (l.me) row.append(el('span', 'badge b-info', 'you'));
+      row.append(el('span', 'muted small-text', l.last_sign_in ? 'signed in ' + ago(l.last_sign_in) : 'never signed in'));
+      row.append(el('span', 'sp'));
+      row.append(button('Remove', 'xs danger', b => removeLogin(b, l)));
+      box.append(row);
+    }
+  }
+  async function removeLogin(b, l) {
+    const ok = await confirmBox('Remove ' + (l.email || 'this login') + '?',
+                                l.me ? 'That is the login you are using - you will be signed out.' : 'It can no longer control the panel.', 'Remove', 'danger');
+    if (!ok) return;
+    b.disabled = true;
+    try {
+      await act('am_admin_login_remove', { pw: '', id: l.id });
+      if (l.me && !IN_CLAUDE) { await signOut(); showLogin('Your login was removed.'); return; }
+      toast((l.email || 'Login') + ' removed.');
+      await loadLogins();
+    } catch (e) { toast(e.message, true); b.disabled = false; }
+  }
+  $('loginsPanel').addEventListener('toggle', () => { if ($('loginsPanel').open) loadLogins(); });
+  $('search').oninput = render; $('filter').onchange = render;
+  $('createBtn').onclick = async () => {
+    $('mainErr').textContent = '';
+    const days = parseFloat($('nDays').value), max = parseInt($('nMax').value, 10) || 1;
+    if (!(days > 0)) { $('mainErr').textContent = 'Days must be more than 0.'; return; }
+    $('createBtn').disabled = true;
+    try {
+      const k = await act('am_admin_create', { pw: '', days, max_players: max, note: $('nNote').value.trim() });
+      $('newKey').textContent = k; $('newKey2').textContent = k; $('newKeyBox').style.display = 'block';
+      $('nNote').value = ''; $('nDays').value = '7'; $('nMax').value = '1';
+      await refresh(true);
+    } catch (e) { $('mainErr').textContent = e.message; }
+    finally { $('createBtn').disabled = false; }
+  };
+  $('copyNew').onclick = () => copy($('newKey').textContent, $('copyNew'));
+  $('banBtn').onclick = () => {
+    const n = $('banName').value.trim();
+    $('banErr').textContent = '';
+    if (!n) { $('banErr').textContent = 'Type the character name first.'; return; }
+    blacklist($('banBtn'), n).then(() => { $('banName').value = ''; });
+  };
+  document.querySelectorAll('.ctl [data-act]').forEach(b => b.onclick = () => {
+    const action = b.dataset.act;
+    let arg = '';
+    if (action === 'move') arg = $('mvSel').value;
+    if (action === 'msg') { arg = $('msgTxt').value.trim(); if (!arg) return toast('Type the message first.', true); }
+    sendOrder(b, $('tgt').value, action, arg, '');
+  });
+
+  // live countdowns, and a fresh read every 30 s (45 s through the connector) while the page is open and visible
+  setInterval(() => {
+    document.querySelectorAll('.left[data-exp]').forEach(e => { e.textContent = fmtLeft(Date.parse(e.dataset.exp) - now()); });
+    document.querySelectorAll('[data-back]').forEach(e => { e.textContent = 'kicked, back in ' + fmtIn(Date.parse(e.dataset.back) - now()); });
+  }, 1000);
+  setInterval(() => { if (loggedIn && !document.hidden) refresh(true); }, IN_CLAUDE ? 45000 : 30000);
+  document.addEventListener('visibilitychange', () => { if (loggedIn && !document.hidden) refresh(true); });
+
+  // ================================================================ start
+  // claude.ai gives its pages window.claude; a page opened as a file or from a web host has none
+  function start() {
+    IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+    if (IN_CLAUDE) {
+      $('modeBadge').textContent = 'via your Supabase connector';
+      $('logoutBtn').classList.add('hide');
+      connect();
+    } else {
+      $('modeBadge').textContent = 'signed in';
+      loadAuth();
+      $('liKeep').checked = store.get('am_keep') !== '0';
+      if (AUTH.rt) {   // signed in before on this device
+        showLogin('Signing you in...');
+        $('loginBtn').disabled = true;
+        refreshSession().then(enter).catch(e => showLogin(e.message)).finally(() => { $('loginBtn').disabled = false; });
+      } else showLogin();
+    }
+  }
+  if (window.claude) start(); else setTimeout(start, 400);
+})();
+</script>
+</body>
+</html>
